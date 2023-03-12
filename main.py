@@ -127,8 +127,22 @@ def autorization(payload):
 
 #class to save previous messages
 class Storage():
+
     def __init__(self):
         self.x = 0
+        self.links = []
+
+    def find_link(self, assignment):
+        for i in assignment.split(' '):
+            if len(i) > 5:
+                if i[:4] == "http":
+                    self.links.append(i)
+                    break
+
+    def show_links(self):
+        list1 = self.links
+        self.links = []
+        return list1
 
     def set(self, key):
         self.x = key
@@ -213,7 +227,9 @@ def drawe_the_day(day):
         )
         # Info
         bruh_line = ""
-        lines = textwrap.wrap(check_on_assignment(lesson), width=60)
+        checking = check_on_assignment(lesson)
+        storage.find_link(checking)
+        lines = textwrap.wrap(checking, width=60)
         if len(lines) > 1:
             for line in lines:
                 bruh_line += line + "\n"
@@ -386,6 +402,10 @@ async def diary(message: types.Message):
             media = types.MediaGroup()
             media.attach_photo(types.InputFile('result0.jpg'))
             previous_message = await message.reply_media_group(media=media)
+            links = storage.show_links()
+            for link in links:
+                mes = await message.answer(link)
+                previous_message.append(mes)
             storage.set(previous_message)
             os.remove("result0.jpg")
 
@@ -418,6 +438,10 @@ async def diary1(message: types.Message):
                 await message.answer("УРА КАНИКУЛЫ (или какая-то ошибка, я не ебу)")
             else:
                 previous_message = await message.reply_media_group(media=media)
+                links = storage.show_links()
+                for link in links:
+                    mes = await message.answer(link)
+                    previous_message.append(mes)
                 storage.set(previous_message)
             for i in range(5):
                 if os.path.exists("result{}.jpg".format(i)) == True:
